@@ -8,7 +8,8 @@ export class ContasService {
   criarContaCor(cliente: Cliente): ContaCorrente | null {
     if (cliente.rendaMensal >= 500) {
       console.log('Olá, Sua conta corrente foi criada com sucesso!');
-      return new ContaCorrente(0, cliente, cliente.rendaMensal);
+      const numeroConta = ContaCorrente.gerarNumeroConta()
+      return new ContaCorrente(0, numeroConta, cliente, cliente.rendaMensal);
     } else {
       console.log('A renda salarial informada é insuficiente para abrir uma conta corrente.');
         return null;
@@ -17,7 +18,8 @@ export class ContasService {
     
     criarContaPop(cliente: Cliente): ContaPoupanca {
       console.log(`Olá, ${cliente.nomeCompleto}! Sua conta poupança foi criada com sucesso!`);
-      return new ContaPoupanca(0, cliente, cliente.rendaMensal);
+      const numeroConta = ContaPoupanca.gerarNumeroConta()
+      return new ContaPoupanca(0, numeroConta, cliente, cliente.rendaMensal);
     }
     
     depositar(conta: ContaBancaria, valor: number): string {
@@ -57,4 +59,5 @@ export class ContasService {
           return `Transferência não realizada. Saldo insuficiente.`;
         }
       }
+      
 }
