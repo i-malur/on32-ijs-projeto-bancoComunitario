@@ -1,31 +1,45 @@
-import { Injectable } from '@nestjs/common';
+import { Controller, Delete, Get, HttpStatus, Param, Patch, Post, Query, Body } from '@nestjs/common';
 import { Cliente } from './cliente.model';
 import { ContaBancaria } from 'src/contas/contas.model';
 import { Gerente } from 'src/gerente/gerente.model';
+import { ClienteService } from './cliente.service';
 
-@Injectable()
-export class ClienteService {
-  private clientesBanco: Cliente[] = [];
-    
-  CriarCliente(nomeCompleto: string, endereco: string, telefone: string, rendaMensal: number, contas: ContaBancaria[], gerente: Gerente,): Cliente {
-    const novoCliente = new Cliente(nomeCompleto, endereco, telefone, rendaMensal, gerente, contas);
-    this.clientesBanco.push(novoCliente);
-    return novoCliente;
+@Controller('clientes')
+export class ClienteController {
+  constructor(private readonly clienteService: ClienteService) {}
+
+  @Post('criar/conta')
+  criarCliente(
+    @Body() body: { nomeCompleto: string, endereco: string, telefone: string, rendaMensal: number, contas: ContaBancaria[], gerente: Gerente }
+  ): Cliente {
+    return this.clienteService.CriarCliente(body.nomeCompleto, body.endereco, body.telefone, body.rendaMensal, body.gerente, body.contas);
   }
 
+  @Get()
   getAllClientes(): Cliente[] {
-    return this.clientesBanco;
+    return this.clienteService.getAllClientes();
   }
 
-  getCliente(id: string): Cliente {
-    return this.clientesBanco.find(IDcliente => IDcliente.id === id);
+  @Get(':id')
+  getCliente(@Param('id') id: string): Cliente {
+    return this.clienteService.getCliente(id);
   }
 
-  verificarSaldo(clienteId: string): number {
-    const cliente = this.getCliente(clienteId);
-    if (!cliente) {
-      throw new Error('Cliente não encontrado');
-    }
-    return cliente.contas.reduce((saldoTotal, conta) => saldoTotal + conta.saldo, 0);
+  @Patch('edit/cliente')
+  editarCliente(
+    @Param('id') id: string,
+    @Query() updates: Partial<Cliente>
+  ): any {
+    const informacoesCliente = this.clienteService.editarCliente(id, updates);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Cliente editado com sucesso',
+      data: informacoesCliente,
+    };
+  }
+
+  @Delete(':id')
+  deleteById(@Param('id') id: string): void {
+    this.clienteService.deleteClienteById(id);
   }
 }

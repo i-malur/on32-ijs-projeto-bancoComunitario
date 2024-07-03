@@ -38,5 +38,11 @@ export class ContasController {
         return this.contasService.transferir(body.contaOrigem, body.contaDestino, body.valor);
     }
 
+    @Post('verificar-saldo')
+    verificarSaldo(@Body() body: { conta: ContaBancaria }): number {
+        return this.contasService.verificarSaldo(body.conta);
+    }
+
+
     
 }

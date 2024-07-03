@@ -59,5 +59,9 @@ export class ContasService {
           return `Transferência não realizada. Saldo insuficiente.`;
         }
       }
+
+      verificarSaldo(conta: ContaBancaria): number {
+        return conta.saldo;
+      }
       
 }
