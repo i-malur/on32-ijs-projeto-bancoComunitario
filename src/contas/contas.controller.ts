@@ -1,48 +1,52 @@
-import { Body, Controller, HttpException, HttpStatus, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
 import { ContasService } from './contas.service';
-import { ContaBancaria, ContaCorrente, ContaPoupanca } from './contas.model';
-import { Cliente } from 'src/cliente/cliente.model';
-
+import { ContaBancaria } from './contas.model';
+import { ClienteService } from 'src/cliente/cliente.service';
 
 @Controller('contas')
 export class ContasController {
-    constructor(private readonly contasService: ContasService) {}
+  constructor(
+    private readonly contasService: ContasService,
+    private readonly clienteService: ClienteService 
+  ) {}
 
-    @Post('criar/corrente')
-    criarContaCorrente(@Body() body: { cliente: Cliente }): ContaCorrente | string {
-        const contaCorrente = this.contasService.criarContaCor(body.cliente);
-        if (contaCorrente) {
-            return contaCorrente;
-        } else {
-            throw new HttpException('Renda salarial insuficiente para abrir uma conta corrente.', HttpStatus.BAD_REQUEST);
-        }
+  @Post('depositar')
+  async depositar(@Body() body: { numeroConta: number, valor: number }): Promise<string> {
+    const { numeroConta, valor } = body;
+
+    try {
+      const mensagem = await this.contasService.depositar(numeroConta, valor);
+      return mensagem;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+  
+  @Post('sacar') 
+  async sacar(@Body() body: { numeroConta: number, valor: number }): Promise<string> {
+    const { numeroConta, valor } = body;
+    const conta: ContaBancaria | null = this.clienteService.obterContaPorNumero(numeroConta);
+    if (!conta) {
+      throw new BadRequestException('Conta não encontrada.');
     }
 
-    @Post('criar/poupanca')
-    criarContaPoupanca(@Body() body: { cliente: Cliente }): ContaPoupanca {
-        return this.contasService.criarContaPop(body.cliente);
+    try {
+      const mensagem = await this.contasService.sacar(conta, valor);
+      return mensagem;
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
+  }
 
-    @Post('depositar')
-    depositar(@Body() body: { conta: ContaBancaria, valor: number }): string {
-        return this.contasService.depositar(body.conta, body.valor);
+  @Post('transferir')
+  async transferir(@Body() body: { contaOrigem: ContaBancaria, contaDestino: ContaBancaria, valor: number }): Promise<string> {
+    const { contaOrigem, contaDestino, valor } = body;
+
+    try {
+      const mensagem = await this.contasService.transferir(contaOrigem, contaDestino, valor);
+      return mensagem;
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-
-    @Post('sacar')
-    sacar(@Body() body: { conta: ContaBancaria, valor: number }): string {
-        return this.contasService.sacar(body.conta, body.valor);
-    }
-
-    @Post('transferir')
-    transferir(@Body() body: { contaOrigem: ContaBancaria, contaDestino: ContaBancaria, valor: number }): string {
-        return this.contasService.transferir(body.contaOrigem, body.contaDestino, body.valor);
-    }
-
-    @Post('verificar-saldo')
-    verificarSaldo(@Body() body: { conta: ContaBancaria }): number {
-        return this.contasService.verificarSaldo(body.conta);
-    }
-
-
-    
+  }
 }

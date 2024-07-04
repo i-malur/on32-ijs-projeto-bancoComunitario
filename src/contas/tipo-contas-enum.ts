@@ -1,4 +1,4 @@
 export enum tipoConta{
-    poupanca = 1,
-    corrente = 2
+    poupanca = "POUPANCA",
+    corrente = "CORRENTE"
 }

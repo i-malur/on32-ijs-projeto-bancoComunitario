@@ -1,14 +1,17 @@
 import { Cliente } from "src/cliente/cliente.model";
 import { tipoConta } from "./tipo-contas-enum";
+import { v4 as uuidv4 } from "uuid";
 
 export class ContaBancaria {
     tipo: tipoConta;
     numeroConta: number;
-    saldo: number = 0;
+    saldo: number;
     idCliente: string;
     rendaMensal: number;
+    idConta: string;
 
     constructor(tipo: tipoConta, numeroConta: number, saldo: number, idCliente: string, rendaMensal: number) {
+        this.idConta = uuidv4();
         this.tipo = tipo;
         this.numeroConta = numeroConta;
         this.saldo = saldo;
@@ -23,9 +26,9 @@ export class ContaCorrente extends ContaBancaria {
 
     constructor(
         saldo: number,
-        numeroConta: number,
         titularConta: Cliente,
         rendaMensal: number,
+        numeroConta: number = ContaCorrente.gerarNumeroConta() // Default value
     ) {
         super(tipoConta.corrente, numeroConta, saldo, titularConta.id, rendaMensal);
     }
@@ -40,9 +43,9 @@ export class ContaPoupanca extends ContaBancaria {
 
     constructor(
         saldo: number,
-        numeroConta: number,
         titularConta: Cliente,
         rendaMensal: number,
+        numeroConta: number = ContaPoupanca.gerarNumeroConta() // Default value
     ) {
         super(tipoConta.poupanca, numeroConta, saldo, titularConta.id, rendaMensal);
     }

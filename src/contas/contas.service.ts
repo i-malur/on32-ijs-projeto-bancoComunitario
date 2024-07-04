@@ -1,67 +1,56 @@
 import { Injectable } from '@nestjs/common';
-import { Cliente } from 'src/cliente/cliente.model';
-import { ContaBancaria, ContaCorrente, ContaPoupanca } from './contas.model';
+import { ContaBancaria, ContaCorrente } from './contas.model';
 import { tipoConta } from './tipo-contas-enum';
+import { ClienteService } from 'src/cliente/cliente.service'; // Verifique se o caminho para o serviço do cliente está correto
+import { Cliente } from 'src/cliente/cliente.model';
 
 @Injectable()
 export class ContasService {
-  criarContaCor(cliente: Cliente): ContaCorrente | null {
-    if (cliente.rendaMensal >= 500) {
-      console.log('Olá, Sua conta corrente foi criada com sucesso!');
-      const numeroConta = ContaCorrente.gerarNumeroConta()
-      return new ContaCorrente(0, numeroConta, cliente, cliente.rendaMensal);
-    } else {
-      console.log('A renda salarial informada é insuficiente para abrir uma conta corrente.');
-        return null;
-      }
+
+  constructor(private readonly clienteService: ClienteService) {}
+
+  async depositar(numeroConta: number, valor: number): Promise<string> {
+    const conta: ContaBancaria = this.clienteService.obterContaPorNumero(numeroConta);
+    if (!conta) {
+      throw new Error('Conta não encontrada.');
     }
-    
-    criarContaPop(cliente: Cliente): ContaPoupanca {
-      console.log(`Olá, ${cliente.nomeCompleto}! Sua conta poupança foi criada com sucesso!`);
-      const numeroConta = ContaPoupanca.gerarNumeroConta()
-      return new ContaPoupanca(0, numeroConta, cliente, cliente.rendaMensal);
-    }
-    
-    depositar(conta: ContaBancaria, valor: number): string {
-      conta.saldo += valor;
-      return `Olá, ${conta.idCliente}! Seu saldo atual após depósito é de R$${conta.saldo.toFixed(2)}`;
-    }
-    
-    sacar(conta: ContaBancaria, valor: number): string {
-      if (conta.tipo === tipoConta.corrente && (conta.saldo + (conta as ContaCorrente).ChequeEspecial) >= valor) {
+    conta.saldo += valor;
+    return `Olá, ${conta.idCliente}! Seu saldo atual após depósito é de R$${conta.saldo.toFixed(2)}`;
+  }
+
+  async sacar(conta: ContaBancaria, valor: number): Promise<string> {
+    if (conta.tipo === tipoConta.corrente) {
+      const contaCorrente = conta as ContaCorrente;
+      if ((conta.saldo + contaCorrente.ChequeEspecial) >= valor) {
         conta.saldo -= valor;
         return `Saque de R$${valor.toFixed(2)} realizado com sucesso. Saldo atual: R$${conta.saldo.toFixed(2)}.`;
-      } 
-      else if (conta.tipo === tipoConta.poupanca && conta.saldo >= valor) {
-        conta.saldo -= valor;
-        return `Saque de R$${valor.toFixed(2)} realizado com sucesso. Saldo atual: R$${conta.saldo.toFixed(2)}.`;
-      } 
-      else {
+      } else {
         return 'Saldo insuficiente.';
       }
-      }
-    
-      transferir(contaOrigem: ContaBancaria, contaDestino: ContaBancaria, valor: number): string {
-        if (contaOrigem.tipo === tipoConta.corrente) {
-          const contaCorrenteOrigem = contaOrigem as ContaCorrente;
-          if ((contaOrigem.saldo + contaCorrenteOrigem.ChequeEspecial) >= valor) {
-            contaOrigem.saldo -= valor;
-            contaDestino.saldo += valor;
-            return `Transferência de R$${valor.toFixed(2)} realizada com sucesso. Saldo atual da conta de origem: R$${contaOrigem.saldo.toFixed(2)}, saldo atual da conta de destino: R$${contaDestino.saldo.toFixed(2)}.`;
-          } else {
-            return `Transferência não realizada. Saldo insuficiente.`;
-          }
-        } else if (contaOrigem.tipo === tipoConta.poupanca && contaOrigem.saldo >= valor) {
-          contaOrigem.saldo -= valor;
-          contaDestino.saldo += valor;
-          return `Transferência de R$${valor.toFixed(2)} realizada com sucesso. Saldo atual da conta de origem: R$${contaOrigem.saldo.toFixed(2)}, saldo atual da conta de destino: R$${contaDestino.saldo.toFixed(2)}.`;
-        } else {
-          return `Transferência não realizada. Saldo insuficiente.`;
-        }
-      }
+    } else if (conta.tipo === tipoConta.poupanca && conta.saldo >= valor) {
+      conta.saldo -= valor;
+      return `Saque de R$${valor.toFixed(2)} realizado com sucesso. Saldo atual: R$${conta.saldo.toFixed(2)}.`;
+    } else {
+      return 'Saldo insuficiente.';
+    }
+  }
 
-      verificarSaldo(conta: ContaBancaria): number {
-        return conta.saldo;
+  async transferir(contaOrigem: ContaBancaria, contaDestino: ContaBancaria, valor: number): Promise<string>{
+    if (contaOrigem.tipo === tipoConta.corrente) {
+      const contaCorrenteOrigem = contaOrigem as ContaCorrente;
+      if ((contaOrigem.saldo + contaCorrenteOrigem.ChequeEspecial) >= valor) {
+        contaOrigem.saldo -= valor;
+        contaDestino.saldo += valor;
+        return `Transferência de R$${valor.toFixed(2)} realizada com sucesso. Saldo atual da conta de origem: R$${contaOrigem.saldo.toFixed(2)}, saldo atual da conta de destino: R$${contaDestino.saldo.toFixed(2)}.`;
+      } else {
+        return 'Transferência não realizada. Saldo insuficiente.';
       }
-      
+    } else if (contaOrigem.tipo === tipoConta.poupanca && contaOrigem.saldo >= valor) {
+      contaOrigem.saldo -= valor;
+      contaDestino.saldo += valor;
+      return `Transferência de R$${valor.toFixed(2)} realizada com sucesso. Saldo atual da conta de origem: R$${contaOrigem.saldo.toFixed(2)}, saldo atual da conta de destino: R$${contaDestino.saldo.toFixed(2)}.`;
+    } else {
+      return 'Transferência não realizada. Saldo insuficiente.';
+    }
+  }
 }

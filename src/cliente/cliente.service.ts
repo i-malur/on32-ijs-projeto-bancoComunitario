@@ -1,54 +1,101 @@
 import { Injectable } from '@nestjs/common';
 import { Cliente } from './cliente.model';
-import { ContaBancaria } from 'src/contas/contas.model';
+import { ContaBancaria, ContaCorrente, ContaPoupanca } from 'src/contas/contas.model';
 import { Gerente } from 'src/gerente/gerente.model';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ClienteService {
   private clientesBanco: Cliente[] = [];
-    
-  CriarCliente(
+
+  criarCliente(
     nomeCompleto: string,
     endereco: string,
     telefone: string,
     rendaMensal: number,
     gerente: Gerente,
-    contas: ContaBancaria[] = []
+    contas: ContaBancaria[] = [] 
   ): Cliente {
     const novoCliente = new Cliente(nomeCompleto, endereco, telefone, rendaMensal, gerente, contas);
     this.clientesBanco.push(novoCliente);
     return novoCliente;
   }
 
-  getAllClientes(): Cliente[] {
+  criarContaCor(clienteId: string): ContaCorrente | null {
+    const cliente = this.obterClienteID(clienteId);
+    if (!cliente) {
+      throw new Error('Cliente não encontrado');
+    }
+
+    if (cliente.rendaMensal >= 500) {
+      const numeroConta = ContaCorrente.gerarNumeroConta();
+      const contaCorrente = new ContaCorrente(0, cliente, cliente.rendaMensal, numeroConta);
+      cliente.contas.push(contaCorrente);
+      return contaCorrente;
+    } else {
+      throw new Error('Renda insuficiente para criar conta corrente');
+    }
+  }
+
+  criarContaPop(cliente: Cliente): ContaPoupanca {
+    console.log(`Olá, ${cliente.nomeCompleto}! Sua conta poupança foi criada com sucesso!`);
+    return new ContaPoupanca(0, cliente, cliente.rendaMensal);
+  }
+
+  obterContaPorNumero(numeroConta: number): ContaBancaria | null {
+    for (const cliente of this.clientesBanco) {
+      const conta = cliente.contas.find(conta => conta.numeroConta === numeroConta);
+      if (conta) {
+        return conta;
+      }
+    }
+    return null;
+  }
+
+  obterClientes(): Cliente[] {
     return this.clientesBanco;
   }
 
-  getCliente(id: string): Cliente {
+  obterClienteID(id: string): Cliente | undefined {
     return this.clientesBanco.find(cliente => cliente.id === id);
   }
 
-  deleteClienteById(id: string): void {
-    this.clientesBanco = this.clientesBanco.filter(cliente => cliente.id !== id);
-  }
-
-  editarCliente(id: string, updates: Partial<Cliente>): Cliente {
-    const cliente = this.getCliente(id);
+  excluirConta(clienteId: string, idConta: string): void {
+    const cliente = this.obterClienteID(clienteId);
     if (!cliente) {
       throw new Error('Cliente não encontrado');
     }
 
-    Object.assign(cliente, updates);
-    return cliente;
+    const index = cliente.contas.findIndex(conta => conta.idConta === idConta);
+    if (index === -1) {
+      throw new Error('Conta não encontrada para este cliente');
+    }
+
+    cliente.contas.splice(index, 1);
+    console.log('Conta excluída com sucesso.');
   }
 
-  trocarTipoDeConta(clienteId: string, novaConta: ContaBancaria): string {
-    const cliente = this.getCliente(clienteId);
+  mudarTipoConta(clienteId: string, idConta: string, novoTipo: string): ContaBancaria {
+    const cliente = this.obterClienteID(clienteId);
     if (!cliente) {
       throw new Error('Cliente não encontrado');
     }
 
-    cliente.contas.push(novaConta);
-    return `Tipo de conta trocado com sucesso. Novo tipo de conta: ${novaConta.tipo}`;
+    const conta = cliente.contas.find(conta => conta.idConta === idConta);
+    if (!conta) {
+      throw new Error('Conta não encontrada para este cliente');
+    }
+
+    let contaAlterada: ContaBancaria;
+    if (novoTipo === 'corrente') {
+      contaAlterada = new ContaCorrente(conta.saldo, cliente, cliente.rendaMensal, conta.numeroConta);
+    } else if (novoTipo === 'poupanca') {
+      contaAlterada = new ContaPoupanca(conta.saldo, cliente, cliente.rendaMensal);
+    } else {
+      throw new Error('Tipo de conta inválido. Use "corrente" ou "poupanca".');
+    }
+
+    cliente.contas = cliente.contas.map(contaNova => contaNova.idConta === idConta ? contaAlterada : contaNova);
+    return contaAlterada;
   }
 }
