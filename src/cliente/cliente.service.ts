@@ -79,7 +79,7 @@ export class ClienteService {
   }
 
   //cliente específico
-  obterClienteID(id: string): Cliente | undefined {
+  obterClienteID(id: string): Cliente {
     return this.clientesBanco.find(cliente => cliente.id === id);
   }
 

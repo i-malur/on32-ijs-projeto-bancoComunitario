@@ -38,6 +38,11 @@ export class ClienteController {
     return cliente.contas;
   }
 
+  @Get(':id')
+  obterClienteEspecifico(@Param('id') id: string): Cliente {
+    return this.clienteService.obterClienteID(id);
+  }
+
   @Get('todos-os-clientes')
   obterClientes(): Cliente[] {
     return this.clienteService.obterClientes();
