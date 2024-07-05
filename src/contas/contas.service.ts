@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ContaBancaria, ContaCorrente } from './contas.model';
 import { tipoConta } from './tipo-contas-enum';
 import { ClienteService } from 'src/cliente/cliente.service'; // Verifique se o caminho para o serviço do cliente está correto
-import { Cliente } from 'src/cliente/cliente.model';
 
 @Injectable()
 export class ContasService {

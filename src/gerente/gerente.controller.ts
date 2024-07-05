@@ -4,7 +4,7 @@ import { ContaBancaria, ContaCorrente, ContaPoupanca } from 'src/contas/contas.m
 import { Gerente } from './gerente.model';
 import { GerenteService } from './gerente.service';
 
-@Controller('gerente')
+@Controller('administrador')
 export class GerenteController {
   constructor(private readonly gerenteService: GerenteService) {}
 
@@ -14,8 +14,22 @@ export class GerenteController {
     return this.gerenteService.CriarCliente(body.nomeCompleto, body.endereco, body.telefone, body.rendaMensal, body.gerente, body.contas); 
   }
 
+  @Get('gerente/clientes')
+  obterTodosClientes(): Cliente[] {
+    return this.gerenteService.obterClientes();
+  }
+
+  @Delete('gerente/excluir/cliente/:clienteId')
+  excluirCliente(@Param('clienteId') clienteId: string): void {
+    try {
+      this.gerenteService.excluirCliente(clienteId);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
   @Post('gerente/criar/corrente')
-  criarContaCorrente(@Body() body: { clienteId: string }): ContaCorrente | string {
+  criarContaCorrente(@Body() body: { clienteId: string }): ContaCorrente {
       try {
           const contaCorrente = this.gerenteService.criarContaCor(body.clienteId); 
           return contaCorrente;
@@ -25,18 +39,27 @@ export class GerenteController {
   }
 
   @Post('gerente/criar/poupanca')
-  criarContaPoupanca(@Body() body: {cliente: Cliente }): ContaPoupanca {
-      return this.gerenteService.criarContaPop(body.cliente);
+  criarContaPoupanca(@Body() body: { clienteId: string }): ContaPoupanca {
+      try {
+          const contaPoupanca = this.gerenteService.criarContaPop(body.clienteId);
+          return contaPoupanca;
+      } catch (error) {
+          throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
   }
 
-  @Delete('gerente/excluir/conta/:clienteId/:contaId')
-  excluirConta(@Param('clienteId') clienteId: string, @Param('contaId') contaId: string): void {
+  @Delete('gerente/excluir/conta/:clienteId/:idConta')
+  excluirConta(
+    @Param('clienteId') clienteId: string,
+    @Param('idConta') idConta: string
+  ): void {
     try {
-      this.gerenteService.excluirConta(clienteId, contaId);
+      this.gerenteService.excluirConta(clienteId, idConta);
     } catch (error) {
-        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
+
 
    // alterar tipo de conta
    @Patch(':clienteId/contas/:contaId/mudar-tipo')

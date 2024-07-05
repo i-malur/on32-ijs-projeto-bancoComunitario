@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { Cliente } from './cliente.model';
 import { ContaBancaria, ContaCorrente, ContaPoupanca } from 'src/contas/contas.model';
 import { Gerente } from 'src/gerente/gerente.model';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ClienteService {
   private clientesBanco: Cliente[] = [];
 
+  // criar usuário
   criarCliente(
     nomeCompleto: string,
     endereco: string,
@@ -21,6 +21,18 @@ export class ClienteService {
     return novoCliente;
   }
 
+  //excluir usuário
+  excluirUsuarios(clienteId: string): void {
+    const index = this.clientesBanco.findIndex(cliente => cliente.id === clienteId);
+    if (index === -1) {
+      throw new Error('Cliente não encontrado');
+    }
+
+    this.clientesBanco.splice(index, 1);
+    console.log('Cliente excluído com sucesso.');
+  }
+
+  //criar conta corrente
   criarContaCor(clienteId: string): ContaCorrente | null {
     const cliente = this.obterClienteID(clienteId);
     if (!cliente) {
@@ -37,11 +49,20 @@ export class ClienteService {
     }
   }
 
-  criarContaPop(cliente: Cliente): ContaPoupanca {
-    console.log(`Olá, ${cliente.nomeCompleto}! Sua conta poupança foi criada com sucesso!`);
-    return new ContaPoupanca(0, cliente, cliente.rendaMensal);
+  //criar conta poupança
+  criarContaPop(clienteId: string): ContaPoupanca {
+    const cliente = this.obterClienteID(clienteId);
+    if (!cliente) {
+      throw new Error('Cliente não encontrado');
+    }
+    
+    const numeroConta = ContaPoupanca.gerarNumeroConta();
+    const contaPoupanca = new ContaPoupanca(0, cliente, cliente.rendaMensal, numeroConta);
+    cliente.contas.push(contaPoupanca);
+    return contaPoupanca;
   }
 
+  //pegar conta por número
   obterContaPorNumero(numeroConta: number): ContaBancaria | null {
     for (const cliente of this.clientesBanco) {
       const conta = cliente.contas.find(conta => conta.numeroConta === numeroConta);
@@ -52,14 +73,17 @@ export class ClienteService {
     return null;
   }
 
+  //lista de clientes
   obterClientes(): Cliente[] {
     return this.clientesBanco;
   }
 
+  //cliente específico
   obterClienteID(id: string): Cliente | undefined {
     return this.clientesBanco.find(cliente => cliente.id === id);
   }
 
+  //excluir conta
   excluirConta(clienteId: string, idConta: string): void {
     const cliente = this.obterClienteID(clienteId);
     if (!cliente) {
@@ -75,6 +99,7 @@ export class ClienteService {
     console.log('Conta excluída com sucesso.');
   }
 
+  //mudar tipo de conta
   mudarTipoConta(clienteId: string, idConta: string, novoTipo: string): ContaBancaria {
     const cliente = this.obterClienteID(clienteId);
     if (!cliente) {
@@ -97,5 +122,14 @@ export class ClienteService {
 
     cliente.contas = cliente.contas.map(contaNova => contaNova.idConta === idConta ? contaAlterada : contaNova);
     return contaAlterada;
+  }
+
+  //listar todas as contas
+  listarTodasContas(): ContaBancaria[] {
+    const todasContas: ContaBancaria[] = [];
+    for (const cliente of this.clientesBanco) {
+      todasContas.push(...cliente.contas);
+    }
+    return todasContas;
   }
 }

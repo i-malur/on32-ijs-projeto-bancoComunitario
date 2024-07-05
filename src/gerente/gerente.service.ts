@@ -31,27 +31,53 @@ export class GerenteService {
         return this.clientes.find(cliente => cliente.id === id);
     }
 
-    //criar conta corrente
+    excluirCliente(id: string): void {
+        const index = this.clientes.findIndex(cliente => cliente.id === id);
+        if (index === -1) {
+            throw new Error('Cliente não encontrado');
+        }
+        this.clientes.splice(index, 1);
+    }
+
     criarContaCor(clienteId: string): ContaCorrente | null {
         const cliente = this.obterClienteID(clienteId);
         if (!cliente) {
             throw new Error('Cliente não encontrado');
         }
 
+        // Verificar se o cliente já possui conta corrente
+        const contaCorrenteExistente = cliente.contas.find(conta => conta instanceof ContaCorrente);
+        if (contaCorrenteExistente) {
+            throw new Error('Cliente já possui uma conta corrente');
+        }
+
         if (cliente.rendaMensal >= 500) {
-        const numeroConta = ContaCorrente.gerarNumeroConta();
-        const contaCorrente = new ContaCorrente(0, cliente, cliente.rendaMensal, numeroConta);
-        cliente.contas.push(contaCorrente);
-        return contaCorrente;
+            const numeroConta = ContaCorrente.gerarNumeroConta();
+            const contaCorrente = new ContaCorrente(0, cliente, cliente.rendaMensal, numeroConta);
+            cliente.contas.push(contaCorrente);
+            return contaCorrente;
         } else {
-        throw new Error('Renda insuficiente para criar conta corrente');
+            throw new Error('Renda insuficiente para criar conta corrente');
         }
     }
 
-    // criar conta poupança 
-    criarContaPop(cliente: Cliente): ContaPoupanca {
+    criarContaPop(clienteId: string): ContaPoupanca {
+        const cliente = this.obterClienteID(clienteId);
+        if (!cliente) {
+            throw new Error('Cliente não encontrado');
+        }
+
+        // Verificar se o cliente já possui conta poupança
+        const contaPoupancaExistente = cliente.contas.find(conta => conta instanceof ContaPoupanca);
+        if (contaPoupancaExistente) {
+            throw new Error('Cliente já possui uma conta poupança');
+        }
+
         console.log(`Olá, ${cliente.nomeCompleto}! Sua conta poupança foi criada com sucesso!`);
-        return new ContaPoupanca(0, cliente, cliente.rendaMensal);
+        const numeroContaPoupanca = ContaPoupanca.gerarNumeroConta();
+        const novaContaPoupanca = new ContaPoupanca(0, cliente, cliente.rendaMensal, numeroContaPoupanca);
+        cliente.contas.push(novaContaPoupanca);
+        return novaContaPoupanca;
     }
         
     // excluir conta

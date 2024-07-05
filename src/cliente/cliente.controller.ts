@@ -1,69 +1,72 @@
-import { Controller, Delete, Patch, Param, Body, HttpStatus, HttpException, Post, Get } from '@nestjs/common';
-import { Cliente } from './cliente.model';
+import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
 import { ClienteService } from './cliente.service';
-import { ContaBancaria, ContaCorrente, ContaPoupanca } from 'src/contas/contas.model';
+import { Cliente } from './cliente.model';
+import { ContaCorrente, ContaPoupanca, ContaBancaria } from 'src/contas/contas.model';
 import { Gerente } from 'src/gerente/gerente.model';
 
 @Controller('clientes')
 export class ClienteController {
   constructor(private readonly clienteService: ClienteService) {}
 
-  @Get('lista/clientes')
-  getAllClientes(): Cliente[] {
+  @Post('criar/usuario')
+  criarCliente(
+    @Body('nomeCompleto') nomeCompleto: string,
+    @Body('endereco') endereco: string,
+    @Body('telefone') telefone: string,
+    @Body('rendaMensal') rendaMensal: number,
+    @Body('gerente') gerente: Gerente
+  ): Cliente {
+    return this.clienteService.criarCliente(nomeCompleto, endereco, telefone, rendaMensal, gerente);
+  }
+
+  @Post(':id/conta-corrente')
+  criarContaCorrente(@Param('id') clienteId: string): ContaCorrente {
+    return this.clienteService.criarContaCor(clienteId);
+  }
+
+  @Post(':id/conta-poupanca')
+  criarContaPoupanca(@Param('id') clienteId: string): ContaPoupanca {
+    return this.clienteService.criarContaPop(clienteId);
+  }
+
+  @Get(':id/contas')
+  obterContasCliente(@Param('id') clienteId: string): ContaBancaria[] {
+    const cliente = this.clienteService.obterClienteID(clienteId);
+    if (!cliente) {
+      throw new Error('Cliente não encontrado');
+    }
+    return cliente.contas;
+  }
+
+  @Get('todos-os-clientes')
+  obterClientes(): Cliente[] {
     return this.clienteService.obterClientes();
   }
 
-  @Get(':id')
-  getCliente(@Param('id') id: string): Cliente {
-    return this.clienteService.obterClienteID(id);
+  @Get('contas')
+  listarTodasContas(): ContaBancaria[] {
+    return this.clienteService.listarTodasContas();
   }
 
-  @Post('criar/usuario')
-  criarCliente(
-    @Body() body: { nomeCompleto: string, endereco: string, telefone: string, rendaMensal: number, gerente: Gerente, contas: ContaBancaria[] }
-  ): Cliente {
-    return this.clienteService.criarCliente(body.nomeCompleto, body.endereco, body.telefone, body.rendaMensal, body.gerente, body.contas);
+  @Delete(':clienteId/contas/:idConta')
+  excluirConta(
+    @Param('clienteId') clienteId: string,
+    @Param('idConta') idConta: string
+  ): void {
+    return this.clienteService.excluirConta(clienteId, idConta);
   }
 
-  @Post('criar/corrente')
-  criarContaCorrente(@Body() body: { clienteId: string }): ContaCorrente | string {
-    try {
-      const contaCorrente = this.clienteService.criarContaCor(body.clienteId);
-      return contaCorrente;
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
-  }
-
-  @Post('criar/poupanca')
-  criarContaPoupanca(@Body() body: { clienteId: string }): ContaPoupanca {
-    const cliente = this.clienteService.obterClienteID(body.clienteId);
-    if (!cliente) {
-      throw new HttpException('Cliente não encontrado', HttpStatus.BAD_REQUEST);
-    }
-    return this.clienteService.criarContaPop(cliente);
-  }
-
-  @Delete(':clienteId/contas/:contaId')
-  excluirConta(@Param('clienteId') clienteId: string, @Param('contaId') contaId: string): void {
-    try {
-      this.clienteService.excluirConta(clienteId, contaId);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
-  }
-
-  @Patch(':clienteId/contas/:contaId/mudar-tipo')
+  @Patch(':clienteId/contas/:idConta')
   mudarTipoConta(
     @Param('clienteId') clienteId: string,
-    @Param('contaId') contaId: string,
-    @Body() body: { novoTipo: string },
+    @Param('idConta') idConta: string,
+    @Body('novoTipo') novoTipo: string
   ): ContaBancaria {
-    try {
-      const novoTipoConta = this.clienteService.mudarTipoConta(clienteId, contaId, body.novoTipo);
-      return novoTipoConta;
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
+    return this.clienteService.mudarTipoConta(clienteId, idConta, novoTipo);
+  }
+
+  @Delete(':id')
+  excluirCliente(@Param('id') id: string): void {
+    this.clienteService.excluirUsuarios(id);
   }
 }

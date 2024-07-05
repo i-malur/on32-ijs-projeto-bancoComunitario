@@ -39,8 +39,15 @@ export class ContasController {
   }
 
   @Post('transferir')
-  async transferir(@Body() body: { contaOrigem: ContaBancaria, contaDestino: ContaBancaria, valor: number }): Promise<string> {
-    const { contaOrigem, contaDestino, valor } = body;
+  async transferir(@Body() body: { contaOrigemNumero: number, contaDestinoNumero: number, valor: number }): Promise<string> {
+    const { contaOrigemNumero, contaDestinoNumero, valor } = body;
+
+    const contaOrigem = this.clienteService.obterContaPorNumero(contaOrigemNumero);
+    const contaDestino = this.clienteService.obterContaPorNumero(contaDestinoNumero);
+
+    if (!contaOrigem || !contaDestino) {
+      throw new BadRequestException('Conta de origem ou destino não encontrada');
+    }
 
     try {
       const mensagem = await this.contasService.transferir(contaOrigem, contaDestino, valor);
