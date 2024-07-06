@@ -9,6 +9,7 @@ export class GerenteController {
   constructor(private readonly gerenteService: GerenteService) {}
 
 
+  //Criar cliente
   @Post('gerente/criar/cliente')
   criarCliente(@Body() body: { nomeCompleto: string, endereco: string, telefone: string, rendaMensal: number, contas: ContaBancaria[], gerente: Gerente }): Cliente {
     return this.gerenteService.CriarCliente(body.nomeCompleto, body.endereco, body.telefone, body.rendaMensal, body.gerente, body.contas); 
@@ -19,6 +20,17 @@ export class GerenteController {
     return this.gerenteService.obterClientes();
   }
 
+  //listar cliente específico
+  @Get('gerente/cliente/:clienteId')
+  obterClientePorID(@Param('clienteId') clienteId: string): Cliente {
+    try {
+      return this.gerenteService.obterClienteID(clienteId);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  //deletar cliente
   @Delete('gerente/excluir/cliente/:clienteId')
   excluirCliente(@Param('clienteId') clienteId: string): void {
     try {
@@ -28,6 +40,7 @@ export class GerenteController {
     }
   }
 
+  //criar conta corrente
   @Post('gerente/criar/corrente')
   criarContaCorrente(@Body() body: { clienteId: string }): ContaCorrente {
       try {
@@ -38,6 +51,7 @@ export class GerenteController {
       }
   }
 
+  //criar conta poupança
   @Post('gerente/criar/poupanca')
   criarContaPoupanca(@Body() body: { clienteId: string }): ContaPoupanca {
       try {
@@ -48,6 +62,7 @@ export class GerenteController {
       }
   }
 
+  //deletar conta
   @Delete('gerente/excluir/conta/:clienteId/:idConta')
   excluirConta(
     @Param('clienteId') clienteId: string,
@@ -60,22 +75,19 @@ export class GerenteController {
     }
   }
 
-
-   // alterar tipo de conta
-   @Patch(':clienteId/contas/:contaId/mudar-tipo')
-   mudarTipoConta(
-     @Param('clienteId') clienteId: string,
-     @Param('contaId') contaId: string,
-     @Body() body: { novoTipo: string },
-   ): ContaBancaria {
-     try {
-       const novoTipoConta = this.gerenteService.mudarTipoConta(clienteId, contaId, body.novoTipo);
-       return novoTipoConta;
-     } catch (error) {
-       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-     }
-   }
-
-
+  // alterar tipo de conta
+  @Patch(':clienteId/contas/:contaId/mudar-tipo')
+  mudarTipoConta(
+    @Param('clienteId') clienteId: string,
+    @Param('contaId') contaId: string,
+    @Body() body: { novoTipo: string },
+  ): ContaBancaria {
+    try {
+      const novoTipoConta = this.gerenteService.mudarTipoConta(clienteId, contaId, body.novoTipo);
+      return novoTipoConta;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
 
 }

@@ -8,6 +8,7 @@ import { Gerente } from 'src/gerente/gerente.model';
 export class ClienteController {
   constructor(private readonly clienteService: ClienteService) {}
 
+  // rota para criar usuário
   @Post('criar/usuario')
   criarCliente(
     @Body('nomeCompleto') nomeCompleto: string,
@@ -19,16 +20,25 @@ export class ClienteController {
     return this.clienteService.criarCliente(nomeCompleto, endereco, telefone, rendaMensal, gerente);
   }
 
+  //excluir usuário
+  @Delete(':id')
+  excluirCliente(@Param('id') id: string): void {
+    this.clienteService.excluirUsuarios(id);
+  }
+
+  //criar conta corrente
   @Post(':id/conta-corrente')
   criarContaCorrente(@Param('id') clienteId: string): ContaCorrente {
     return this.clienteService.criarContaCor(clienteId);
   }
 
+  //criar conta poupança
   @Post(':id/conta-poupanca')
   criarContaPoupanca(@Param('id') clienteId: string): ContaPoupanca {
     return this.clienteService.criarContaPop(clienteId);
   }
 
+  //Listar conta específica
   @Get(':id/contas')
   obterContasCliente(@Param('id') clienteId: string): ContaBancaria[] {
     const cliente = this.clienteService.obterClienteID(clienteId);
@@ -38,21 +48,25 @@ export class ClienteController {
     return cliente.contas;
   }
 
-  @Get(':id')
-  obterClienteEspecifico(@Param('id') id: string): Cliente {
-    return this.clienteService.obterClienteID(id);
-  }
-
-  @Get('todos-os-clientes')
-  obterClientes(): Cliente[] {
-    return this.clienteService.obterClientes();
-  }
-
+  //Listar todas as contas
   @Get('contas')
   listarTodasContas(): ContaBancaria[] {
     return this.clienteService.listarTodasContas();
   }
 
+  //Listar todos os usuários
+  @Get('todos-os-clientes')
+  obterClientes(): Cliente[] {
+    return this.clienteService.obterClientes();
+  }
+
+  //Listar usuário específico
+  @Get(':id')
+  obterClienteEspecifico(@Param('id') id: string): Cliente {
+    return this.clienteService.obterClienteID(id);
+  }
+
+  //deletar conta
   @Delete(':clienteId/contas/:idConta')
   excluirConta(
     @Param('clienteId') clienteId: string,
@@ -61,6 +75,7 @@ export class ClienteController {
     return this.clienteService.excluirConta(clienteId, idConta);
   }
 
+  //mudar tipo de conta
   @Patch(':clienteId/contas/:idConta')
   mudarTipoConta(
     @Param('clienteId') clienteId: string,
@@ -70,8 +85,5 @@ export class ClienteController {
     return this.clienteService.mudarTipoConta(clienteId, idConta, novoTipo);
   }
 
-  @Delete(':id')
-  excluirCliente(@Param('id') id: string): void {
-    this.clienteService.excluirUsuarios(id);
-  }
+  
 }

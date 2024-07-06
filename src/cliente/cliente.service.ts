@@ -73,12 +73,21 @@ export class ClienteService {
     return null;
   }
 
-  //lista de clientes
+  //listar todas as contas
+  listarTodasContas(): ContaBancaria[] {
+    const todasContas: ContaBancaria[] = [];
+    for (const cliente of this.clientesBanco) {
+      todasContas.push(...cliente.contas);
+    }
+    return todasContas;
+  }
+
+  //lista de usuários
   obterClientes(): Cliente[] {
     return this.clientesBanco;
   }
 
-  //cliente específico
+  //usuário específico
   obterClienteID(id: string): Cliente {
     return this.clientesBanco.find(cliente => cliente.id === id);
   }
@@ -124,12 +133,5 @@ export class ClienteService {
     return contaAlterada;
   }
 
-  //listar todas as contas
-  listarTodasContas(): ContaBancaria[] {
-    const todasContas: ContaBancaria[] = [];
-    for (const cliente of this.clientesBanco) {
-      todasContas.push(...cliente.contas);
-    }
-    return todasContas;
-  }
+  
 }

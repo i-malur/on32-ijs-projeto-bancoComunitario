@@ -23,14 +23,17 @@ export class GerenteService {
             return novoCliente;
         };
     
+    //Listar todos os clientes
     obterClientes(): Cliente[] {
         return this.clientes;
     }
-            
+    
+    //Listar cliente específico
     obterClienteID(id: string): Cliente {
         return this.clientes.find(cliente => cliente.id === id);
     }
 
+    //excluir cliente
     excluirCliente(id: string): void {
         const index = this.clientes.findIndex(cliente => cliente.id === id);
         if (index === -1) {
@@ -39,13 +42,12 @@ export class GerenteService {
         this.clientes.splice(index, 1);
     }
 
+    //criar conta corrente
     criarContaCor(clienteId: string): ContaCorrente | null {
         const cliente = this.obterClienteID(clienteId);
         if (!cliente) {
             throw new Error('Cliente não encontrado');
         }
-
-        // Verificar se o cliente já possui conta corrente
         const contaCorrenteExistente = cliente.contas.find(conta => conta instanceof ContaCorrente);
         if (contaCorrenteExistente) {
             throw new Error('Cliente já possui uma conta corrente');
@@ -61,13 +63,12 @@ export class GerenteService {
         }
     }
 
+    //criar conta poupança
     criarContaPop(clienteId: string): ContaPoupanca {
         const cliente = this.obterClienteID(clienteId);
         if (!cliente) {
             throw new Error('Cliente não encontrado');
         }
-
-        // Verificar se o cliente já possui conta poupança
         const contaPoupancaExistente = cliente.contas.find(conta => conta instanceof ContaPoupanca);
         if (contaPoupancaExistente) {
             throw new Error('Cliente já possui uma conta poupança');
