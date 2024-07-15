@@ -1,11 +1,17 @@
-import { ContaBancaria } from "src/contas/contas.model";
-import { Gerente } from "src/gerente/gerente.model";
+import { ContaBancaria } from "src/models/contas.model";
+import { Gerente } from "src/models/gerente.model";
 import { v4 as uuidv4 } from "uuid";
 
 export class Cliente {
     public id: string;
     public nomeCompleto: string;
-    public endereco: string;
+    public endereco: {
+        rua: string;
+        numero: string;
+        bairro: string;
+        cep: string;
+        estado: string;
+    }
     public telefone: string;
     public contas: ContaBancaria[];
     public gerente: Gerente;
@@ -13,7 +19,13 @@ export class Cliente {
 
     constructor(
         nomeCompleto: string,
-        endereco: string,
+        endereco: {
+            rua: string;
+            numero: string;
+            bairro: string;
+            cep: string;
+            estado: string;
+        },
         telefone: string,
         rendaMensal: number,
         gerente: Gerente,

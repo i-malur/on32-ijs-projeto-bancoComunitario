@@ -1,7 +1,7 @@
 import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
 import { ContasService } from './contas.service';
 import { ContaBancaria } from './contas.model';
-import { ClienteService } from 'src/cliente/cliente.service';
+import { ClienteService } from 'src/services/cliente.service';
 
 @Controller('contas')
 export class ContasController {

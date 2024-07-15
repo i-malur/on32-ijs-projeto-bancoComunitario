@@ -1,18 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { Cliente } from 'src/cliente/cliente.model';
-import { ClienteService } from 'src/cliente/cliente.service';
-import { ContaBancaria, ContaCorrente, ContaPoupanca } from 'src/contas/contas.model';
-import { Gerente } from './gerente.model';
+import { Cliente } from 'src/models/cliente.model';
+import { ClienteService } from 'src/services/cliente.service';
+import { ContaBancaria, ContaCorrente, ContaPoupanca } from 'src/models/contas.model';
+import { Gerente } from '../models/gerente.model';
 
 @Injectable()
 export class GerenteService {
     
     private clientes: Cliente[] = [];
+    
     constructor(private readonly clienteService: ClienteService){}
 
     // criar um cliente
-    CriarCliente(nomeCompleto: string, 
-        endereco: string, 
+    criarClienteGerente(nomeCompleto: string, 
+        endereco: {
+            rua: string;
+            numero: string;
+            bairro: string;
+            cep: string;
+            estado: string;
+        },  
         telefone: string, 
         rendaMensal: number, 
         gerente: Gerente, 
@@ -24,17 +31,17 @@ export class GerenteService {
         };
     
     //Listar todos os clientes
-    obterClientes(): Cliente[] {
+    obterClientesGerente(): Cliente[] {
         return this.clientes;
     }
     
     //Listar cliente específico
-    obterClienteID(id: string): Cliente {
+    obterClienteIdGerente(id: string): Cliente {
         return this.clientes.find(cliente => cliente.id === id);
     }
 
     //excluir cliente
-    excluirCliente(id: string): void {
+    excluirClienteGerente(id: string): void {
         const index = this.clientes.findIndex(cliente => cliente.id === id);
         if (index === -1) {
             throw new Error('Cliente não encontrado');
@@ -43,8 +50,8 @@ export class GerenteService {
     }
 
     //criar conta corrente
-    criarContaCor(clienteId: string): ContaCorrente | null {
-        const cliente = this.obterClienteID(clienteId);
+    gerenteCriarContaCor(clienteId: string): ContaCorrente | null {
+        const cliente = this.obterClienteIdGerente(clienteId);
         if (!cliente) {
             throw new Error('Cliente não encontrado');
         }
@@ -64,8 +71,8 @@ export class GerenteService {
     }
 
     //criar conta poupança
-    criarContaPop(clienteId: string): ContaPoupanca {
-        const cliente = this.obterClienteID(clienteId);
+    gerenteCriarContaPop(clienteId: string): ContaPoupanca {
+        const cliente = this.obterClienteIdGerente(clienteId);
         if (!cliente) {
             throw new Error('Cliente não encontrado');
         }
@@ -82,8 +89,8 @@ export class GerenteService {
     }
         
     // excluir conta
-    excluirConta(clienteId: string, contaId: string): void {
-        const cliente = this.obterClienteID(clienteId);
+    gerenteExcluirConta(clienteId: string, contaId: string): void {
+        const cliente = this.obterClienteIdGerente(clienteId);
         if (!cliente) {
           throw new Error('Cliente não encontrado');
         }
@@ -91,8 +98,8 @@ export class GerenteService {
     }
 
     // alterar tipo de conta
-    mudarTipoConta(clienteId: string, contaId: string, novoTipo: string): ContaBancaria {
-        const cliente = this.obterClienteID(clienteId);
+    gerrenteMudarTipoConta(clienteId: string, contaId: string, novoTipo: string): ContaBancaria {
+        const cliente = this.obterClienteIdGerente(clienteId);
         if (!cliente) {
         throw new Error('Cliente não encontrado');
         }   
