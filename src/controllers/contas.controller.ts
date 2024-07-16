@@ -1,6 +1,6 @@
-import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
-import { ContasService } from './contas.service';
-import { ContaBancaria } from './contas.model';
+import { BadRequestException, Body, Controller, Param, Post } from '@nestjs/common';
+import { ContasService } from 'src/services/contas.service';
+import { ContaBancaria } from 'src/models/contas.model';
 import { ClienteService } from 'src/services/cliente.service';
 
 @Controller('contas')
@@ -55,5 +55,14 @@ export class ContasController {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
+  }
+
+  @Post('pagamento')
+  async realizarPagamento(
+    @Body('numeroConta') numeroConta: number,
+    @Body('valor') valor: number,
+    @Body('tipoPagamento') tipoPagamento: 'PIX' | 'BOLETO'
+  ): Promise<string> {
+    return this.contasService.realizarPagamento(numeroConta, valor, tipoPagamento);
   }
 }

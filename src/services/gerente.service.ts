@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Cliente } from 'src/models/cliente.model';
 import { ClienteService } from 'src/services/cliente.service';
 import { ContaBancaria, ContaCorrente, ContaPoupanca } from 'src/models/contas.model';
-import { Gerente } from '../models/gerente.model';
+import { Gerente } from 'src/models/gerente.model';
 
 @Injectable()
 export class GerenteService {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Cliente } from '../models/cliente.model';
+import { Cliente } from 'src/models/cliente.model';
 import { ContaBancaria, ContaCorrente, ContaPoupanca } from 'src/models/contas.model';
 import { Gerente } from 'src/models/gerente.model';
 

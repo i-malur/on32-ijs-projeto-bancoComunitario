@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { ContaBancaria, ContaCorrente } from './contas.model';
-import { tipoConta } from './tipo-contas-enum';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ContaBancaria, ContaCorrente } from 'src/models/contas.model';
+import { tipoConta } from 'src/enums/tipo-contas-enum';
 import { ClienteService } from 'src/services/cliente.service'; // Verifique se o caminho para o serviço do cliente está correto
 
 @Injectable()
 export class ContasService {
+  private readonly logger = new Logger(ContasService.name);
 
   constructor(private readonly clienteService: ClienteService) {}
 
@@ -50,6 +51,28 @@ export class ContasService {
       return `Transferência de R$${valor.toFixed(2)} realizada com sucesso. Saldo atual da conta de origem: R$${contaOrigem.saldo.toFixed(2)}, saldo atual da conta de destino: R$${contaDestino.saldo.toFixed(2)}.`;
     } else {
       return 'Transferência não realizada. Saldo insuficiente.';
+    }
+  }
+
+  // pagamentos (pix e boleto)
+  async realizarPagamento(numeroConta: number, valor: number, tipoPagamento: 'PIX' | 'BOLETO'): Promise<string> {
+    const conta: ContaBancaria = this.clienteService.obterContaPorNumero(numeroConta);
+    if (!conta) {
+      this.logger.error(`Conta não encontrada: ${numeroConta}`);
+      throw new NotFoundException('Conta não encontrada.');
+    }
+
+    if (conta.saldo >= valor) {
+      conta.saldo -= valor;
+      this.logger.log(`Pagamento realizado com sucesso. Conta: ${numeroConta}, Valor: ${valor}`);
+      return `Pagamento de R$${valor.toFixed(2)} realizado com sucesso via ${tipoPagamento}. Saldo atual: R$${conta.saldo.toFixed(2)}.`;
+    } else if (conta instanceof ContaCorrente && conta.ChequeEspecial >= valor - conta.saldo) {
+      conta.saldo -= valor;
+      this.logger.log(`Pagamento realizado com uso do cheque especial. Conta: ${numeroConta}, Valor: ${valor}`);
+      return `Pagamento de R$${valor.toFixed(2)} realizado com sucesso via ${tipoPagamento} utilizando cheque especial. Saldo atual: R$${conta.saldo.toFixed(2)}.`;
+    } else {
+      this.logger.error(`Saldo insuficiente para realizar o pagamento. Conta: ${numeroConta}, Valor: ${valor}`);
+      throw new BadRequestException('Saldo insuficiente para realizar o pagamento.');
     }
   }
 }
