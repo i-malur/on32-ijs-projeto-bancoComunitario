@@ -1,4 +1,4 @@
-import { Cliente } from "src/cliente/cliente.model";
+import { Cliente } from "src/models/cliente.model";
 import { v4 as uuidv4 } from "uuid";
 
 export class Gerente{

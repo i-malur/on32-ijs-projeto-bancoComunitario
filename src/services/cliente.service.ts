@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Cliente } from './cliente.model';
-import { ContaBancaria, ContaCorrente, ContaPoupanca } from 'src/contas/contas.model';
-import { Gerente } from 'src/gerente/gerente.model';
+import { Cliente } from 'src/models/cliente.model';
+import { ContaBancaria, ContaCorrente, ContaPoupanca } from 'src/models/contas.model';
+import { Gerente } from 'src/models/gerente.model';
 
 @Injectable()
 export class ClienteService {
@@ -10,7 +10,13 @@ export class ClienteService {
   // criar usuário
   criarCliente(
     nomeCompleto: string,
-    endereco: string,
+    endereco: {
+      rua: string;
+      numero: string;
+      bairro: string;
+      cep: string;
+      estado: string;
+  },
     telefone: string,
     rendaMensal: number,
     gerente: Gerente,
@@ -30,6 +36,16 @@ export class ClienteService {
 
     this.clientesBanco.splice(index, 1);
     console.log('Cliente excluído com sucesso.');
+  }
+
+  //listar usuários
+  obterClientes(): Cliente[] {
+    return this.clientesBanco;
+  }
+
+  //usuário específico
+  obterClienteID(id: string): Cliente {
+    return this.clientesBanco.find(cliente => cliente.id === id);
   }
 
   //criar conta corrente
@@ -80,16 +96,6 @@ export class ClienteService {
       todasContas.push(...cliente.contas);
     }
     return todasContas;
-  }
-
-  //lista de usuários
-  obterClientes(): Cliente[] {
-    return this.clientesBanco;
-  }
-
-  //usuário específico
-  obterClienteID(id: string): Cliente {
-    return this.clientesBanco.find(cliente => cliente.id === id);
   }
 
   //excluir conta

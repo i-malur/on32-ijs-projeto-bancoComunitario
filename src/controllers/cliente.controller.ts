@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
-import { ClienteService } from './cliente.service';
-import { Cliente } from './cliente.model';
-import { ContaCorrente, ContaPoupanca, ContaBancaria } from 'src/contas/contas.model';
-import { Gerente } from 'src/gerente/gerente.model';
+import { ClienteService } from '../services/cliente.service';
+import { ContaCorrente, ContaPoupanca, ContaBancaria } from 'src/models/contas.model';
+import { Gerente } from 'src/models/gerente.model';
+import { Cliente } from 'src/models/cliente.model';
 
 @Controller('clientes')
 export class ClienteController {
@@ -12,7 +12,13 @@ export class ClienteController {
   @Post('criar/usuario')
   criarCliente(
     @Body('nomeCompleto') nomeCompleto: string,
-    @Body('endereco') endereco: string,
+    @Body('endereco') endereco: {
+      rua: string;
+      numero: string;
+      bairro: string;
+      cep: string;
+      estado: string;
+  },
     @Body('telefone') telefone: string,
     @Body('rendaMensal') rendaMensal: number,
     @Body('gerente') gerente: Gerente
